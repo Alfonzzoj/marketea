@@ -2,63 +2,46 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
+use App\Models\Item;
+use App\Models\SalesNote;
 use Illuminate\Http\Request;
 
 class SalesNoteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $sales_notes = SalesNote::all();
+        return view('salesnotes.index', compact('sales_notes'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $customers = Customer::all();
+        $items = Item::all();
+        return view('salesnotes.create', compact('customers', 'items'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $sale_note = SalesNote::create($request->all());
+        return redirect()->route('salesnotes.index')->with('success', 'SalesNote created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit(SalesNote $sale_note)
     {
-        //
+        return view('salesnotes.edit', compact('sale_note'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(Request $request, SalesNote $sale_note)
     {
-        //
+        $sale_note->update($request->all());
+        return redirect()->route('salesnotes.index')->with('success', 'SalesNote updated successfully.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(SalesNote $sale_note)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $sale_note->delete();
+        return redirect()->route('salesnotes.index')->with('success', 'SalesNote deleted successfully.');
     }
 }
