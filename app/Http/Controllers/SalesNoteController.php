@@ -59,6 +59,12 @@ class SalesNoteController extends Controller
         return redirect()->route('salesnotes.index')->with('success', 'SalesNote created successfully.');
     }
 
+    public function show($sale_note_id)
+    {
+        $sale_note = SalesNote::find($sale_note_id);
+        return view('salesnotes.show', compact('sale_note'));
+    }
+
     public function edit(SalesNote $sale_note)
     {
         return view('salesnotes.edit', compact('sale_note'));
@@ -70,8 +76,9 @@ class SalesNoteController extends Controller
         return redirect()->route('salesnotes.index')->with('success', 'SalesNote updated successfully.');
     }
 
-    public function destroy(SalesNote $sale_note)
+    public function destroy($sale_note_id)
     {
+        $sale_note = SalesNote::find($sale_note_id);
         $sale_note->delete();
         return redirect()->route('salesnotes.index')->with('success', 'SalesNote deleted successfully.');
     }
