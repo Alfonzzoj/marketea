@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreign('item_id')->references('id')->on('items')->onDelete('cascade');
             $table->integer('quantity');
             $table->decimal('total', 8, 2);
-            $table->string('attach');
+            $table->string('attach')->nullable(); // Permitir que el atributo attach sea nulo
             $table->timestamps();
         });
     }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Item;
+use App\Models\Note;
+use App\Models\NoteItem;
 use App\Models\SalesNote;
 use Illuminate\Http\Request;
 
@@ -24,7 +26,36 @@ class SalesNoteController extends Controller
 
     public function store(Request $request)
     {
-        $sale_note = SalesNote::create($request->all());
+        // Obtener los datos del formulario
+        $items = $request->input('items');
+        $quantities = $request->input('quantities');
+        // return $items;
+
+        $note = Note::create([
+            'customer_id' => $request->customer_id,
+            'date' => date('Y-m-d'),
+            'total' => $request->total,
+        ]);
+
+        $sale_note = SalesNote::create([
+            'customer_id' => $request->customer_id,
+            'note_id' => $note->id,
+        ]);
+
+
+        for ($i = 0; $i < count($items); $i++) {
+            $item = Item::find($items[$i]);
+            $quantity = $quantities[$i];
+
+            NoteItem::create([
+                'note_id' => $note->id,
+                'item_id' => $item->id,
+                'quantity' => $quantity,
+                'price' => $item->price,
+                'total' => $item->price * $quantity,
+                'attach' => null
+            ]);
+        }
         return redirect()->route('salesnotes.index')->with('success', 'SalesNote created successfully.');
     }
 

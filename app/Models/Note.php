@@ -14,4 +14,13 @@ class Note extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+    public function salesNote()
+    {
+        return $this->hasOne(SalesNote::class);
+    }
+
+    public function noteItems()
+    {
+        return $this->hasMany(NoteItem::class);
+    }
 }
