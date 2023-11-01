@@ -5,7 +5,7 @@
 
 
 @section('content_header')
-<h1>Sales Notes</h1>
+<h1>Edit Sale note</h1>
 @stop
 
 @section('content')
@@ -15,7 +15,8 @@
         <div class="row">
             <div class="col-md-12">
 
-                <form method="POST" action="{{ route('salesnotes.store') }}">
+                <form method="POST" action="{{ route('salesnotes.update',$sale_note->id) }}">
+                    @method('PUT')
                     @csrf
                     <h3>Note</h3>
 
@@ -25,9 +26,11 @@
 
                             <div class="form-group">
                                 <label for="customer">Customer</label>
-                                <select class="form-control" id="customer" name="customer_id">
+                                <select class="form-control" id="customer" name="customer_id"
+                                    onchange="updatePrice(this)">
                                     @foreach($customers as $customer)
-                                    <option value="{{$customer->id}}">{{$customer->name}}</option>
+                                    <option value="{{$customer->id}}" {{ $customer->id == $sale_note->customer->id ?
+                                        'selected' : '' }}>{{$customer->name}}</option>
                                     @endforeach
                                 </select>
                                 <hr>
@@ -42,42 +45,54 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div id="items-container" class="container">
+                                @forelse ($sale_note->note->noteItems as $Nitem)
+
                                 <div class="row">
                                     <div class="form-group col-md-1">
-                                        <label for="item_1">1</label>
+                                        <label for="item_{{ $loop->index+1 }}">{{ $loop->index+1 }}</label>
                                     </div>
                                     <div class="form-group col-md-6">
                                         <select name="items[]" class="form-control" onchange="updatePrice(this)">
                                             @foreach($items as $item)
-                                            <option value="{{ $item->id }}" data-price="{{ $item->price }}">{{
+                                            <option value="{{ $item->id }}" {{ $item->id == $Nitem->item_id ?
+                                                'selected' : '' }}
+                                                data-price="{{ $item->price }}">{{
                                                 $item->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="form-group col-md-2">
                                         <input type="number" name="quantities[]" class="form-control"
-                                            placeholder="Quantity" min="0" value="0" oninput="updatePrice(this)">
+                                            placeholder="Quantity" min="0" value="{{ $Nitem->quantity }}"
+                                            oninput="updatePrice(this)">
                                     </div>
 
                                     <div class="form-group col-md-3">
                                         <div class="input-group ">
                                             <input type="text" name="prices[]" class="form-control" placeholder="Price"
-                                                readonly>
+                                                value="{{ $Nitem->total }}" readonly>
                                             <button type="button" class="btn btn-danger btn-remove "
                                                 onclick="removeItem(this)">x</button>
                                         </div>
                                     </div>
                                 </div>
+                                @empty
+                                Error note items
+                                @endforelse
+
+
+
                             </div>
                             <div id="total-container" class="form-group col-md-12">
                                 <label for="total">Total:</label>
-                                <input type="text" id="total" name="total" class="form-control" readonly>
+                                <input type="text" id="total" name="total" value="{{ $sale_note->note->total }}"
+                                    class="form-control" readonly>
                             </div>
 
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-success">Save</button>
+                    <button type="submit" class="btn btn-warning">Save changes</button>
                 </form>
             </div>
         </div>
@@ -98,33 +113,35 @@
 
 <script>
     function updatePrice(element) {
-        const quantityInput = element;
-        const priceInput = quantityInput.parentNode.nextElementSibling.querySelector('input[name="prices[]"]');
-        const selectElement = quantityInput.parentNode.previousElementSibling.querySelector('select[name="items[]"]');
+    const quantityInput = element.parentNode.nextElementSibling.querySelector('input[name="quantities[]"]');
+    const priceInput = element.parentNode.nextElementSibling.nextElementSibling.querySelector('input[name="prices[]"]');
+    const totalInput = document.getElementById('total');
+    const selectElement = element;
 
-        if (selectElement) {
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
-            const price = selectedOption.getAttribute('data-price');
-            const quantity = quantityInput.value;
-            const totalPrice = price * quantity;
-            priceInput.value = totalPrice.toFixed(2);
-        }
-            // Calcular la suma total
-        let total = 0;
-        const priceInputs = document.querySelectorAll('input[name="prices[]"]');
-        priceInputs.forEach(priceInput => {
-            const price = parseFloat(priceInput.value);
-            if (!isNaN(price)) {
-                total += price;
-            }
-        });
+    if (selectElement) {
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const price = parseFloat(selectedOption.getAttribute('data-price'));
+        const quantity = parseInt(quantityInput.value);
+        const totalPrice = price * quantity;
 
-        // Mostrar la suma total en el campo de total
-        const totalInput = document.getElementById('total');
-        totalInput.value = total.toFixed(2);
+        priceInput.value = price.toFixed(2);
+        totalInput.value = calculateTotal();
     }
+}
 
     let numItems = 1;
+    function calculateTotal() {
+    let total = 0;
+    const priceInputs = document.querySelectorAll('input[name="prices[]"]');
+    priceInputs.forEach(priceInput => {
+        const price = parseFloat(priceInput.value);
+        if (!isNaN(price)) {
+            total += price;
+        }
+    });
+
+    return total.toFixed(2);
+}
     function addNewItem() {
         const itemsContainer = document.getElementById('items-container');
 
